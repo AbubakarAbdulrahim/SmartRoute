@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -562,14 +563,23 @@ class SrAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ImageProvider? imageProvider;
     if (imageUrl != null && imageUrl!.isNotEmpty) {
+      if (imageUrl!.startsWith('http') || imageUrl!.startsWith('https')) {
+        imageProvider = NetworkImage(imageUrl!);
+      } else if (imageUrl!.startsWith('/') || imageUrl!.contains(':\\')) {
+        imageProvider = FileImage(File(imageUrl!));
+      }
+    }
+
+    if (imageProvider != null) {
       return Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           image: DecorationImage(
-            image: NetworkImage(imageUrl!),
+            image: imageProvider,
             fit: BoxFit.cover,
           ),
           border: Border.all(color: SrColors.green.withValues(alpha: 0.2), width: 2),
@@ -583,6 +593,87 @@ class SrAvatar extends StatelessWidget {
         angle: -math.pi / 16,
         child: Icon(LucideIcons.user, color: SrColors.green, size: size * .54),
       ),
+    );
+  }
+}
+
+class SrImage extends StatelessWidget {
+  final String? imageUrl;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final BorderRadius? borderRadius;
+  final IconData placeholderIcon;
+
+  const SrImage({
+    super.key,
+    this.imageUrl,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+    this.placeholderIcon = LucideIcons.image,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return _buildPlaceholder();
+    }
+
+    Widget image;
+    if (imageUrl!.startsWith('http') || imageUrl!.startsWith('https')) {
+      image = Image.network(
+        imageUrl!,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: width,
+            height: height,
+            color: SrColors.panel,
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2, color: SrColors.green),
+            ),
+          );
+        },
+      );
+    } else {
+      final file = File(imageUrl!);
+      if (file.existsSync()) {
+        image = Image.file(
+          file,
+          width: width,
+          height: height,
+          fit: fit,
+        );
+      } else {
+        image = _buildPlaceholder();
+      }
+    }
+
+    if (borderRadius != null) {
+      return ClipRRect(
+        borderRadius: borderRadius!,
+        child: image,
+      );
+    }
+
+    return image;
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: SrColors.panel,
+        borderRadius: borderRadius,
+      ),
+      child: Icon(placeholderIcon, color: SrColors.muted, size: (width ?? 40) * 0.4),
     );
   }
 }

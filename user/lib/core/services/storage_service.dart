@@ -1,21 +1,18 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'cloudinary_service.dart';
 
-final storageServiceProvider = Provider<StorageService>((ref) => StorageService(FirebaseStorage.instance));
+final storageServiceProvider = Provider<StorageService>((ref) => StorageService(CloudinaryService()));
 
 class StorageService {
-  final FirebaseStorage _storage;
-  StorageService(this._storage);
+  final CloudinaryService _cloudinary;
+  StorageService(this._cloudinary);
 
   Future<String> uploadFile(String path, File file) async {
-    final ref = _storage.ref().child(path);
-    final uploadTask = await ref.putFile(file);
-    return await uploadTask.ref.getDownloadURL();
+    return await _cloudinary.uploadImage(file);
   }
 
   Future<void> deleteFile(String url) async {
-    final ref = _storage.refFromURL(url);
-    await ref.delete();
+    await _cloudinary.deleteImage(url);
   }
 }

@@ -48,19 +48,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               _OnboardingPage(
                 title: 'Smart Logistics,\nPowered by AI',
                 description: 'Create deliveries instantly and let SmartRoute AI intelligently connect you with the best nearby rider.',
-                imageUrl: 'assets/onboarding/onboarding_1.png',
                 accentColor: SrColors.green,
               ),
               _OnboardingPage(
                 title: 'Track Deliveries\nin Real-Time',
                 description: 'Watch your rider move live on the map with accurate ETA updates and instant notifications.',
-                imageUrl: 'assets/onboarding/onboarding_2.png',
                 accentColor: SrColors.amber,
               ),
               _OnboardingPage(
                 title: 'Reliable Even\nOffline',
                 description: 'SmartRoute AI keeps working even with poor internet using offline synchronization and SMS backup systems.',
-                imageUrl: 'assets/onboarding/onboarding_3.png',
                 accentColor: SrColors.red,
               ),
             ],
@@ -129,13 +126,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 class _OnboardingPage extends StatelessWidget {
   final String title;
   final String description;
-  final String imageUrl;
   final Color accentColor;
 
   const _OnboardingPage({
     required this.title,
     required this.description,
-    required this.imageUrl,
     required this.accentColor,
   });
 
@@ -146,49 +141,23 @@ class _OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
-          // Futuristic Illustration Container with Glassmorphism feel
+          const SizedBox(height: 120),
+          // Subtle Glow behind text
           Container(
-            height: 320,
-            width: double.infinity,
+            height: 100,
+            width: 100,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: accentColor.withValues(alpha: 0.1),
-                  blurRadius: 40,
-                  spreadRadius: 10,
-                ),
-              ],
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Soft glow behind the PNG
-                Center(
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: accentColor.withValues(alpha: 0.2),
-                          blurRadius: 100,
-                          spreadRadius: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Image.asset(
-                  imageUrl,
-                  fit: BoxFit.contain,
+                  color: accentColor.withValues(alpha: 0.15),
+                  blurRadius: 100,
+                  spreadRadius: 40,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 60),
+          const SizedBox(height: 40),
           Text(
             title,
             textAlign: TextAlign.center,

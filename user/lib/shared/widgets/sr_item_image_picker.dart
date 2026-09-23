@@ -84,44 +84,46 @@ class _SrItemImagePickerState extends State<SrItemImagePicker> {
             );
           },
           child: Container(
-            height: 120,
+            height: 200,
             width: double.infinity,
             decoration: BoxDecoration(
               color: SrColors.panel,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: SrColors.line),
-              image: _imagePath != null
-                ? DecorationImage(image: FileImage(File(_imagePath!)), fit: BoxFit.cover)
-                : null,
             ),
             child: _imagePath == null
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(LucideIcons.camera, color: SrColors.muted, size: 32),
-                    const SizedBox(height: 8),
-                    const Text('Snap the item', style: TextStyle(color: SrColors.muted, fontSize: 13)),
-                  ],
-                )
-              : Stack(
-                  children: [
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() => _imagePath = null);
-                          widget.onImagePicked(null);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                          child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.camera, color: SrColors.muted, size: 32),
+                      const SizedBox(height: 8),
+                      const Text('Snap the item', style: TextStyle(color: SrColors.muted, fontSize: 13)),
+                    ],
+                  )
+                : Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      SrImage(
+                        imageUrl: _imagePath,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() => _imagePath = null);
+                            widget.onImagePicked(null);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                            child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
           ),
         ),
       ],

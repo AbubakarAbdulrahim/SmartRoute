@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/models/rider_model.dart';
 import '../../../../core/models/delivery_model.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/gemini_service.dart';
 import '../../../../core/models/notification_model.dart';
 import '../../../auth/presentation/notifiers/auth_notifier.dart';
+import '../../../../core/services/booking_notification_service.dart';
 import 'delivery_notifier.dart';
+
 
 enum AiMatchingStep { idle, searching, ranking, results, booking, confirmed, error }
 
@@ -166,8 +170,12 @@ class AiMatchingNotifier extends StateNotifier<AiMatchingState> {
         createdAt: DateTime.now(),
       );
       await _firestoreService.createNotification(customerId, notification);
+      
+      // 3. Trigger SMS confirmation (fire and forget)
+      _triggerSMSConfirmation(delivery, state.selectedRider!);
 
       state = state.copyWith(step: AiMatchingStep.confirmed, deliveryId: deliveryId);
+
     } catch (e) {
       state = state.copyWith(step: AiMatchingStep.error, errorMessage: e.toString());
     }
@@ -176,4 +184,24 @@ class AiMatchingNotifier extends StateNotifier<AiMatchingState> {
   void reset() {
     state = AiMatchingState();
   }
+
+  Future<void> _triggerSMSConfirmation(DeliveryModel delivery, RiderModel rider) async {
+    try {
+      final user = _ref.read(authNotifierProvider).user;
+      if (user != null && user.phoneNumber.isNotEmpty) {
+        await _ref.read(bookingNotificationServiceProvider).sendBookingSMS(
+              phoneNumber: user.phoneNumber,
+              riderName: rider.fullName,
+              vehicleType: rider.vehicleType,
+              eta: rider.estimatedArrivalMinutes,
+              deliveryId: delivery.deliveryId,
+            );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Background SMS trigger failed: $e');
+      }
+    }
+  }
 }
+

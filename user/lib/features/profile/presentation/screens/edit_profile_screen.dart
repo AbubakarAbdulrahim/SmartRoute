@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../../shared/widgets/sr_ui.dart';
 import '../../../auth/presentation/notifiers/auth_notifier.dart';
 
@@ -14,6 +16,7 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _nameController;
   String? _profilePic;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -39,6 +42,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         const SnackBar(content: Text('Profile updated successfully')),
       );
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        setState(() => _profilePic = image.path);
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
     }
   }
 
@@ -75,14 +94,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         bottom: 0,
                         right: 0,
                         child: InkWell(
-                          onTap: () {
-                            // In a real app, we'd open an image picker
-                            // For now, we'll just cycle through some placeholders
-                            setState(() {
-                              _profilePic = 'https://i.pravatar.cc/300?u=${DateTime.now().millisecond}';
-                            });
-                          },
-                          child: Container(
+                        onTap: _pickImage,
+                        child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
                               color: SrColors.green,

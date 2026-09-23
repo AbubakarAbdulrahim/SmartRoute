@@ -112,37 +112,30 @@ class _PackageInfo extends StatelessWidget {
         const Text('Package Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
         const SizedBox(height: 12),
         SrCard(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (delivery.packageImage != null && File(delivery.packageImage!).existsSync())
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(File(delivery.packageImage!), width: 80, height: 80, fit: BoxFit.cover),
-                )
-              else
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: SrColors.panel,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(LucideIcons.package, color: SrColors.muted),
-                ),
-              const SizedBox(width: 16),
-              Expanded(
+              SrImage(
+                imageUrl: delivery.packageImage,
+                width: double.infinity,
+                height: 200,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                placeholderIcon: LucideIcons.package,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       delivery.packageCategory ?? 'Standard Delivery',
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       delivery.packageDescription ?? 'No description provided',
-                      style: const TextStyle(color: SrColors.muted, fontSize: 13),
+                      style: const TextStyle(color: SrColors.muted, fontSize: 14, height: 1.4),
                     ),
                   ],
                 ),

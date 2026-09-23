@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/firestore_service.dart';
+import '../../../../core/services/storage_service.dart';
+import 'dart:io';
 
 final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(() {
   return AuthNotifier();
@@ -199,9 +201,22 @@ class AuthNotifier extends Notifier<AuthState> {
     
     state = state.copyWith(status: AuthStatus.loading);
     try {
+      String? uploadedImageUrl = profilePic;
+      if (profilePic != null && !profilePic.startsWith('http')) {
+        try {
+          final storageService = ref.read(storageServiceProvider);
+          uploadedImageUrl = await storageService.uploadFile(
+            'profiles/${state.user!.uid}',
+            File(profilePic),
+          );
+        } catch (e) {
+          throw "Failed to upload profile picture. Please try again.";
+        }
+      }
+
       final updatedUser = state.user!.copyWith(
         fullName: name ?? state.user!.fullName,
-        profileImage: profilePic ?? state.user!.profileImage,
+        profileImage: uploadedImageUrl ?? state.user!.profileImage,
       );
       
       await _firestoreService.saveUser(updatedUser);

@@ -1,9 +1,12 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/services/firestore_service.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../../../core/models/delivery_model.dart';
+import 'dart:io';
 
 final deliveryNotifierProvider =
     NotifierProvider<DeliveryNotifier, DeliveryDraftState>(() {
@@ -91,6 +94,21 @@ class DeliveryNotifier extends Notifier<DeliveryDraftState> {
       final deliveryId = "DEL-${DateTime.now().millisecondsSinceEpoch}";
       final otp = (1000 + Random().nextInt(9000)).toString();
 
+      String? uploadedImageUrl = state.itemImagePath;
+      if (state.itemImagePath != null && !state.itemImagePath!.startsWith('http')) {
+        try {
+          final storageService = ref.read(storageServiceProvider);
+          uploadedImageUrl = await storageService.uploadFile(
+            'deliveries/$deliveryId',
+            File(state.itemImagePath!),
+          );
+        } catch (e) {
+          debugPrint("Cloudinary Upload Error: $e");
+          // Continue with local path or fail? Let's fail for data integrity
+          throw "Failed to upload package image. Please check your connection.";
+        }
+      }
+
       final delivery = DeliveryModel(
         deliveryId: deliveryId,
         customerId: FirebaseAuth.instance.currentUser?.uid ?? 'guest',
@@ -102,7 +120,7 @@ class DeliveryNotifier extends Notifier<DeliveryDraftState> {
         destinationLng: state.destinationLocation!.longitude,
         packageDescription: state.packageDescription,
         packageCategory: state.packageCategory ?? 'Express Delivery',
-        packageImage: state.itemImagePath,
+        packageImage: uploadedImageUrl,
         deliveryFee: state.estimatedPrice,
         status: DeliveryStatus.pending_acceptance,
         otpCode: otp,
@@ -114,7 +132,8 @@ class DeliveryNotifier extends Notifier<DeliveryDraftState> {
         await _firestoreService.createDelivery(delivery);
         state = state.copyWith(step: DeliveryStep.success);
       } catch (e) {
-        state = state.copyWith(step: DeliveryStep.success, errorMessage: 'Offline mode');
+        debugPrint("Firestore Save Error: $e");
+        rethrow; // Let the outer catch handle it and show as error step
       }
     } catch (e) {
       state = state.copyWith(step: DeliveryStep.error, errorMessage: e.toString());
