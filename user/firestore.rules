@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+      
+      // User sub-collections
+      match /transactions/{txId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /addresses/{addrId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /payment_methods/{pmId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Deliveries
+    match /deliveries/{deliveryId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); // Simplified for now
+    }
+
+    // Riders
+    match /riders/{riderId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only admin can edit riders
+    }
+
+    // System
+    match /sos_alerts/{alertId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn();
+    }
+  }
+}
